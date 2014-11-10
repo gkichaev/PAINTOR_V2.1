@@ -2,7 +2,7 @@
 Probabilistic Annotation INtegraTOR
 
 ## UPDATE 11/10/14
-PAINTOR V1.1 has major updates to improve performance and usablity. We now perform a Cholesky Decomposition of the covariance matrix to increase computational efficiency and stability while simultaneously reducing the overall memory footprint. We now make inputting files easier as well. See updated User Manual for details.   
+PAINTOR V1.1 has major updates to improve performance and usablity. We now perform a Cholesky Decomposition of the covariance matrix to increase computational efficiency and stability while simultaneously reducing the overall memory footprint. In addition, we have modified the file input routine to make it more user friendly. See updated User Manual for details.   
 
 ## Description
 
