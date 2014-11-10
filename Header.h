@@ -74,5 +74,14 @@ double GetLogLikeli(VectorXd& Zs, VectorXd& Lams, VectorXd& beta, MatrixXd& Aj, 
 double FullLogLikeli(vector<VectorXd> &Zscores, vector<VectorXd> &Lambdas, VectorXd &betas, vector<MatrixXd> &Aijs, vector<MatrixXd> &Sigmas, vector<MatrixXd> &InvSigmas, int numberCausal);
 
 vector<int> ParseIndex(string& input);
+
+void GetCholeskys(vector<MatrixXd>& sigmas, vector<MatrixXd>& chol_factors, vector<MatrixXd>& chol_factors_inv);
+void CholeskyTransform(vector<VectorXd>& input_vectors, vector<VectorXd>& output_vectors, vector<MatrixXd>& input_matrix);
+
+inline  double EvaluateLogMvn_Cholesky(VectorXd& Z_vec,  VectorXd C_vec,  VectorXd& Lam_vec, MatrixXd& upper_chol);
+double Estep_chol(vector<VectorXd> &Zscores, vector<VectorXd> &Lambdas, VectorXd &betas, vector<MatrixXd> &Aijs, vector<MatrixXd> &upper_chol, CausalProbs &E_out, int numberCausal);
+void NewPost_chol(VectorXd& Marginal, VectorXd& Zs, VectorXd& Lams, VectorXd& beta, MatrixXd& Aj,  MatrixXd& upper_chol, int NC, double& fullLikeli);
+double EM_Run_chol(CausalProbs &probabilites, int iter_max, vector<VectorXd> &Zscores, vector<VectorXd> &Lambdas, VectorXd &beta_int, vector<MatrixXd> &Aijs, vector<MatrixXd> &upper_chol, int numCausal);
+vector<string> GetInputFiles(string input_directory, string fname, vector<VectorXd>& all_zscores, vector<MatrixXd>& all_LD, vector<MatrixXd>& all_annotations, string  LD_suffix, string annot_suffix);
 #endif
 
