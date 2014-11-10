@@ -6,7 +6,8 @@ PAINTOR V1.1 has major updates to improve performance and usablity. We now perfo
 
 ## Description
 
-We provide a command line implementation of the PAINTOR framework described in [Kichaev et al. (PLOS Genetics, 2014)] ](http://www.plosgenetics.org/article/info%3Adoi%2F10.1371%2Fjournal.pgen.1004722). Briefly, PAINTOR is a statistical fine-mapping method that integrates functional genomic data with association strength to prioritize variants for follow-up analysis. The software runs on multiple fine-mapping loci simulatenously and takes as input the following data for each set of SNPs at a locus
+We provide a command line implementation of the PAINTOR framework described in [Kichaev et al. (PLOS Genetics, 2014)](http://www.plosgenetics.org/article/info%3Adoi%2F10.1371%2Fjournal.pgen.1004722). Briefly, PAINTOR is a statistical fine-mapping method that integrates functional genomic data with association strength to prioritize variants for follow-up analysis. The software runs on multiple fine-mapping loci simulatenously and takes as input the following data for each set of SNPs at a locus
+
 
 1. Summary Association Statistics (Z-scores)
 2. Linkage Disequlibirium Matrix (Pairwise Pearson correlations coefficients between each SNP)
