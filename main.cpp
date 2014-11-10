@@ -1,3 +1,4 @@
+
 #include "Header.h"
 
 int main(int argc, const char * argv[])
@@ -8,17 +9,18 @@ int main(int argc, const char * argv[])
     int mallerFlag = 0;
     int OptBetaFlag = 0;
     int causalSNPs = 2;
-    string outName = "_PaintorProb.txt";
+    string outName = ".PaintorProbs";
     string gammaName = "EstimatedGamma.txt";
     int maxIter = 10;
     string outdir;
     string annotationIndex;
     string z_name = "Zscore.txt";
-    string aij_name = "Aij.txt";
-    string ld_name = "LD.txt";
+    string aij_name = "annotations";
+    string ld_name = "LD";
     string likeli_name = "Likelihood.txt";
     vector<int> annot_Index;
     string beta_init = "NoInput";
+    string input_files = "";
 
     for(int i = 1; i < argc; i++){
         string argComp = argv[i];
@@ -71,20 +73,24 @@ int main(int argc, const char * argv[])
         else if(argComp.compare("-OUTname") == 0){
             outName = argv[i+1];
         }
-	else if(argComp.compare("-GAMinitial") == 0){
+    else if(argComp.compare("-GAMinitial") == 0){
             beta_init = argv[i+1];
         }
+        else if(argComp.compare("-input")== 0){
+            input_files = argv[i+1];
+        }
     }
+
     
     vector<VectorXd> Z_scores;
     vector<VectorXd> Lambdas;
-    GetMultVectors(Z_scores, number_loci, root, z_name);
-    GenerateLambdas(Lambdas, Z_scores, 3.7);
-    
     vector<MatrixXd> Aij_Locs ;
     vector<MatrixXd> LD_locs;
-    GetMultMatrices(Aij_Locs, number_loci, root, aij_name);
-    GetMultMatrices(LD_locs,number_loci, root, ld_name);
+
+
+    vector<string> all_loci=GetInputFiles(root, input_files, Z_scores, LD_locs, Aij_Locs, ld_name, aij_name);
+    GenerateLambdas(Lambdas, Z_scores, 3.7);
+    
 
     vector<MatrixXd> Aij_run;
 
@@ -92,13 +98,29 @@ int main(int argc, const char * argv[])
     MakeAnnotations(Aij_run, Aij_Locs, annot_Index);
     VectorXd beta_est(Aij_run[0].cols());
     beta_est.setZero();
-   
+
+
+    vector<MatrixXd> upper_choleskys;
+    vector<MatrixXd> lower_choleskys_inv;
+    GetCholeskys(LD_locs, upper_choleskys, lower_choleskys_inv);
+
+    vector<VectorXd> transformed_zscores;
+    vector<VectorXd> transformed_lambdas;
+
+    CholeskyTransform(Z_scores, transformed_zscores, lower_choleskys_inv);
+
+ 
     if(beta_init.compare("NoInput")!= 0){
         beta_est = GetVector(root + beta_init);
     }
+
+    for(int i =0; i < LD_locs.size(); i++){
+        LD_locs[i].resize(0,0);
+        lower_choleskys_inv[i].resize(0,0);
+    }
     
     if(mallerFlag == 1){
-        for(int i = 0; i < number_loci; i++){
+        for(int i = 0; i < Z_scores.size(); i++){
             VectorXd post1caus = Zscores2Post(Z_scores[i]);
             ofstream myfile;
             string fname = root + to_string((long long)(i+1)) + "_PosteriorMaller.txt";
@@ -111,10 +133,10 @@ int main(int argc, const char * argv[])
     if(mallerFlag != 1){
         CausalProbs runProbs;
         if(OptBetaFlag == 0){
-            double loglikelihod = EM_Run(runProbs, maxIter, Z_scores, Lambdas, beta_est, Aij_run, LD_locs, causalSNPs);
+            double loglikelihod = EM_Run_chol(runProbs, maxIter, transformed_zscores, Lambdas, beta_est, Aij_run, upper_choleskys, causalSNPs);
             for(int i = 0; i < (int) runProbs.probs_locs.size(); i++){
                 ofstream myfile;
-                string fname = outdir + to_string((long long)(i+1)) + outName;
+                string fname = outdir + all_loci[i] + outName;
                 myfile.open(fname);
                 myfile << runProbs.probs_locs[i];
                 myfile << "\n";
@@ -126,18 +148,8 @@ int main(int argc, const char * argv[])
             myfile <<std::setprecision(9) << loglikelihod;
             myfile << "\n";
             myfile.close();
-        }
         
-        else{
-            EM_Run_No_Opt(runProbs, maxIter, Z_scores, Lambdas, beta_est, Aij_Locs, LD_locs, causalSNPs);
-            for(int i = 0; i < (int) runProbs.probs_locs.size(); i++){
-                ofstream myfile;
-                string fname = outdir + to_string((long long)(i+1)) + outName;
-                myfile.open(fname);
-                myfile << runProbs.probs_locs[i];
-                myfile << "\n";
-                myfile.close();
-            }
+
         }
         
         ofstream myfile;
@@ -150,6 +162,31 @@ int main(int argc, const char * argv[])
 return 0;
 
 }
+
+vector<string> GetInputFiles(string input_directory, string fname, vector<VectorXd>& all_zscores, vector<MatrixXd>& all_LD, vector<MatrixXd>& all_annotations, string  LD_suffix, string annot_suffix){
+
+    vector<string> filenames;
+    ifstream input_file;
+
+    input_file.open(input_directory+fname);
+
+    if (input_file.is_open()) {
+    while (!input_file.eof()) {
+            string temp_name;
+            input_file >> temp_name;
+            filenames.push_back(temp_name);
+            cout<< "reading in: "<< temp_name<< endl;
+            if(temp_name.compare("")!=0){
+                all_zscores.push_back(GetVector(input_directory+temp_name));
+                all_LD.push_back(GetMatrix(input_directory+temp_name+"."+LD_suffix));
+                all_annotations.push_back(GetMatrix(input_directory+temp_name+"."+annot_suffix));
+            }
+        }
+    }
+    input_file.close();
+    return(filenames);
+} 
+
 
 vector<int> ParseIndex(string& input){
     vector<int> output;
@@ -207,13 +244,50 @@ void GenerateLambdas(vector<VectorXd>& allLams, vector<VectorXd>& allZscores, do
     }
 }
 
+void GetCholeskys(vector<MatrixXd>& sigmas, vector<MatrixXd>& chol_factors, vector<MatrixXd>& chol_factors_inv){
+    MatrixXd L;
+    MatrixXd inv_L;
+    for(int i=0; i < sigmas.size(); i++){
+        VectorXd X(sigmas[i].rows());
+        X.fill(.001);
+        MatrixXd Y = X.asDiagonal();
+        L = (sigmas[i]+Y).llt().matrixL();
+        chol_factors.push_back(L.transpose().triangularView<Eigen::Upper>());
+        inv_L = L.inverse();
+        //cout << inv_L << endl;
+        chol_factors_inv.push_back(inv_L.triangularView<Eigen::Lower>());
+    }
+}
+
+
+void CholeskyTransform(vector<VectorXd>& input_vectors, vector<VectorXd>& output_vectors, vector<MatrixXd>& input_matrix){
+    for(int i=0; i<input_vectors.size(); i++){
+        output_vectors.push_back(input_matrix[i]*input_vectors[i]);
+    }
+}
+
+void SigmaInvert(vector<MatrixXd> &Sigma_locs, vector<MatrixXd> &Inv_locs){
+    for(unsigned i = 0; i < Sigma_locs.size(); i++){
+        MatrixXd temp = Sigma_locs[i];
+        for(unsigned j = 0; j < Sigma_locs[i].cols(); j++){
+            
+            temp(j,j) += 0.001;
+        }
+        Sigma_locs[i] = temp;
+    }
+    for(unsigned i = 0; i < Sigma_locs.size(); i++){
+        FullPivLU<MatrixXd> ldt(Sigma_locs[i]);
+        Inv_locs.push_back(ldt.inverse());
+    }
+}
+
 
 VectorXd GetVector(string filename){
     
     ifstream input_file(filename);
     istream_iterator<double> start(input_file), end;
     vector<double> vec(start, end);
-    input_file .close();
+    input_file.close();
     
     VectorXd outvec(vec.size());
     for(unsigned i = 0; i < vec.size(); i++){
@@ -323,6 +397,8 @@ inline  double EvaluateLogMvn(VectorXd& Z_vec,  VectorXd C_vec,  VectorXd& Lam_v
     
     return(prob);
 }
+
+
 
 
 void EvalAijs(MatrixXd& Aj,VectorXd& beta, VectorXd& priorJ){
@@ -476,20 +552,6 @@ void Optimize_Nlopt(vector<double>& x, double lower, double upper, double betaZe
 }
 
 
-void SigmaInvert(vector<MatrixXd> &Sigma_locs, vector<MatrixXd> &Inv_locs){
-    for(unsigned i = 0; i < Sigma_locs.size(); i++){
-        MatrixXd temp = Sigma_locs[i];
-        for(unsigned j = 0; j < Sigma_locs[i].cols(); j++){
-            
-            temp(j,j) += 0.001;
-        }
-        Sigma_locs[i] = temp;
-    }
-	for(unsigned i = 0; i < Sigma_locs.size(); i++){
-        FullPivLU<MatrixXd> ldt(Sigma_locs[i]);
-        Inv_locs.push_back(ldt.inverse());
-    }
-}
 
 double Estep(vector<VectorXd> &Zscores, vector<VectorXd> &Lambdas, VectorXd &betas, vector<MatrixXd> &Aijs, vector<MatrixXd> &Sigmas, vector<MatrixXd> &InvSigmas, CausalProbs &E_out, int numberCausal){
     
@@ -511,9 +573,12 @@ double Estep(vector<VectorXd> &Zscores, vector<VectorXd> &Lambdas, VectorXd &bet
     E_out.probs_locs = marginal_i;
     E_out.probs_stacked = stacker;
     
-    cout << std::setprecision(9) << fullLikeli << endl;
+    
     return(fullLikeli);
 }
+
+
+
 
 double EM_Run(CausalProbs &probabilites, int iter_max, vector<VectorXd> &Zscores, vector<VectorXd> &Lambdas, VectorXd &beta_int, vector<MatrixXd> &Aijs, vector<MatrixXd> &Sigmas, int numCausal){
     vector<double> beta_run = eigen2vec(beta_int);
@@ -545,6 +610,64 @@ double EM_Run(CausalProbs &probabilites, int iter_max, vector<VectorXd> &Zscores
     }
     return(likeli);
 }
+
+double EM_Run_chol(CausalProbs &probabilites, int iter_max, vector<VectorXd> &Zscores, vector<VectorXd> &Lambdas, VectorXd &beta_int, vector<MatrixXd> &Aijs, vector<MatrixXd> &upper_chol, int numCausal){
+    vector<double> beta_run = eigen2vec(beta_int);
+    //vector<MatrixXd> Invert_LD;
+    //SigmaInvert(Sigmas, Invert_LD);
+    ObjectiveData Opt_in;
+    Opt_in.Aijs = Stack_Matrices(Aijs);
+
+    int iterations = 0;
+    VectorXd beta_update;
+    double likeliOld = 0;
+    double likeli =1;
+    while(iterations < iter_max){
+        likeli = Estep_chol(Zscores, Lambdas, beta_int, Aijs, upper_chol, probabilites, numCausal);
+        Opt_in.probs = probabilites.probs_stacked;
+        void *opt_ptr = &Opt_in;
+        Optimize_Nlopt(beta_run, -20, 20, beta_run[0], opt_ptr);
+        beta_update = vector2eigen(beta_run);
+        cout << std::setprecision(9) << "Log likelihood at iteration " << iterations << ": " <<likeli << endl;
+        cout << "Parameter Estimates:" << endl << beta_update << endl << endl;
+        if(abs(likeli - likeliOld) < 0.01){
+            beta_int = beta_update;
+            break;
+        }
+        else{
+            beta_int = beta_update;
+            likeliOld = likeli;
+            iterations++;
+        }
+    }
+    return(likeli);
+}
+
+
+double Estep_chol(vector<VectorXd> &Zscores, vector<VectorXd> &Lambdas, VectorXd &betas, vector<MatrixXd> &Aijs, vector<MatrixXd> &upper_chol, CausalProbs &E_out, int numberCausal){
+    
+    vector<VectorXd> marginal_i;
+    VectorXd temp;
+    VectorXd exp_temp;
+    vector<double> stacker;
+    vector<double> stack_temp;
+    double fullLikeli = 0;
+    for(unsigned i = 0; i < Zscores.size(); i ++){
+        VectorXd temp(Zscores[i].size());
+        NewPost_chol(temp, Zscores[i], Lambdas[i], betas, Aijs[i], upper_chol[i], numberCausal, fullLikeli);
+        exp_temp = temp.array().exp();
+        marginal_i.push_back(exp_temp);
+        stack_temp =  eigen2vec(exp_temp);
+        stacker.insert(stacker.end(), stack_temp.begin(), stack_temp.end());
+    }
+
+    E_out.probs_locs = marginal_i;
+    E_out.probs_stacked = stacker;
+    
+    return(fullLikeli);
+}
+
+
 
 void EM_Run_No_Opt(CausalProbs &probabilities ,int iter_max, vector<VectorXd> &Zscores, vector<VectorXd> &Lambdas, VectorXd &beta_int, vector<MatrixXd> &Aijs, vector<MatrixXd> &Sigmas, int numCausal){
     vector<double> beta_run = eigen2vec(beta_int);
@@ -636,6 +759,60 @@ void NewPost(VectorXd& Marginal, VectorXd& Zs, VectorXd& Lams, VectorXd& beta, M
     
 }
 
+void NewPost_chol(VectorXd& Marginal, VectorXd& Zs, VectorXd& Lams, VectorXd& beta, MatrixXd& Aj,  MatrixXd& upper_chol, int NC, double& fullLikeli){
+    int numsnps = Zs.size();
+    double runsum = 0;
+    for(int i =0 ; i < Marginal.size(); i++){
+        Marginal(i) = -10000000;
+    }
+    double c_prob = 0;
+    double z_prob = 0;
+    double sum = 0;
+    
+    VectorXd causConfig(Zs.size());
+    causConfig.setZero();
+    VectorXd causIndex(NC);
+    causIndex.setZero();
+    VectorXd evalPrior(Zs.size());
+    EvalAijs(Aj, beta, evalPrior);
+    
+    c_prob = Prob_CNew(evalPrior, beta, causConfig);
+    z_prob = EvaluateLogMvn_Cholesky(Zs, causConfig, Lams, upper_chol);
+    sum = c_prob+z_prob;
+    runsum = sum;
+    int counter = 1;
+    while(NextCombo(causIndex, NC, numsnps+1) == 1){
+        BuildCausalVector(causConfig, causIndex);
+        c_prob = Prob_CNew(evalPrior, beta, causConfig);
+        z_prob = EvaluateLogMvn_Cholesky(Zs, causConfig, Lams, upper_chol);
+        sum = c_prob+z_prob;
+        runsum = LogSum(runsum, sum);
+        for(int j = 0; j < causIndex.size(); j++){
+            if(causIndex[j] >0){
+                Marginal[causIndex[j]-1] = LogSum(Marginal[causIndex[j]-1], sum);
+            }
+            
+        }
+        counter ++;
+    }
+    for(int f = 0 ; f < Marginal.size(); f++){
+        Marginal[f] = Marginal[f]- runsum;
+    }
+    fullLikeli = fullLikeli+runsum;
+    
+}
+
+
+inline  double EvaluateLogMvn_Cholesky(VectorXd& Z_vec,  VectorXd C_vec,  VectorXd& Lam_vec, MatrixXd& upper_chol){
+    
+    VectorXd elm_wise = C_vec.cwiseProduct(Lam_vec);
+    VectorXd mu = upper_chol*elm_wise;
+    VectorXd Z_mu = Z_vec-mu;
+    double prob = (-.5)*(Z_mu.dot(Z_mu));
+    
+    return(prob);
+}
+
 
 
 void BuildCausalVector(VectorXd& vec2Build , VectorXd& index){
@@ -665,3 +842,4 @@ void PrintVecXD(VectorXd& vec){
     }
     cout << endl;
 }
+
