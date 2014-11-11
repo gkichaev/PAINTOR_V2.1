@@ -33,7 +33,7 @@ Download the latest [version](https://github.com/gkichaev/PAINTOR_FineMapping/re
 
 This will create an executable PAINTOR.exe. Sample data is provided with the package. To test that the installation worked properly, type:
 
-`$ ./PAINTOR.exe -o ./SampleData/ -d ./SampleData/ -input input.files -c 3 -i 1`
+`$ ./PAINTOR -o ./SampleData/ -d ./SampleData/ -input input.files -c 3 -i 1`
 
 If everything worked correctly the final log-likelihod should be: `-977.846493`
 
