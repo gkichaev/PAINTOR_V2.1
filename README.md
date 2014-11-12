@@ -28,7 +28,7 @@ The software has two dependencies: [1] Eigen v3.2 (matrix library) [2] NLopt v2.
 Download the latest [version](https://github.com/gkichaev/PAINTOR_FineMapping/releases) of the software into your desired target directory. Then unpack and install the software with the following commands:
 
 `$ tar -xvf PAINTOR_FineMapping-1.1.tar`  
-`$ cd PAINTOR`  
+`$ cd PAINTOR_FineMapping`  
 `$ bash install.sh`  
 
 This will create an executable PAINTOR.exe. Sample data is provided with the package. To test that the installation worked properly, type:
