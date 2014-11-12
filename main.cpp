@@ -168,7 +168,7 @@ vector<string> GetInputFiles(string input_directory, string fname, vector<Vector
     vector<string> filenames;
     ifstream input_file;
 
-    input_file.open(input_directory+fname);
+    input_file.open(fname);
 
     if (input_file.is_open()) {
     while (!input_file.eof()) {
