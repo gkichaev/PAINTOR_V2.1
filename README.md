@@ -31,7 +31,7 @@ Download the latest [version](https://github.com/gkichaev/PAINTOR_FineMapping/re
 `$ cd PAINTOR_FineMapping`  
 `$ bash install.sh`  
 
-This will create an executable PAINTOR.exe. Sample data is provided with the package. To test that the installation worked properly, type:
+This will create an executable "PAINTOR". Sample data is provided with the package. To test that the installation worked properly, type:
 
 `$ ./PAINTOR -o ./SampleData/ -d ./SampleData/ -input input.files -c 3 -i 1`
 
