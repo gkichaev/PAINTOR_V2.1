@@ -1,5 +1,6 @@
-
 #include "Header.h"
+
+int thread_num = omp_get_thread_num();
 
 int main(int argc, const char * argv[])
 {
@@ -73,11 +74,14 @@ int main(int argc, const char * argv[])
         else if(argComp.compare("-OUTname") == 0){
             outName = argv[i+1];
         }
-    else if(argComp.compare("-GAMinitial") == 0){
+        else if(argComp.compare("-GAMinitial") == 0){
             beta_init = argv[i+1];
         }
         else if(argComp.compare("-input")== 0){
             input_files = argv[i+1];
+        }
+        else if(argComp.compare("-n")== 0){
+            thread_num = stoi(argv[i+1]);
         }
     }
 
@@ -159,8 +163,7 @@ int main(int argc, const char * argv[])
         myfile.close();
     }
     
-return 0;
-
+    return 0;
 }
 
 vector<string> GetInputFiles(string input_directory, string fname, vector<VectorXd>& all_zscores, vector<MatrixXd>& all_LD, vector<MatrixXd>& all_annotations, string  LD_suffix, string annot_suffix){
@@ -646,19 +649,34 @@ double EM_Run_chol(CausalProbs &probabilites, int iter_max, vector<VectorXd> &Zs
 
 double Estep_chol(vector<VectorXd> &Zscores, vector<VectorXd> &Lambdas, VectorXd &betas, vector<MatrixXd> &Aijs, vector<MatrixXd> &upper_chol, CausalProbs &E_out, int numberCausal){
     
-    vector<VectorXd> marginal_i;
-    VectorXd temp;
-    VectorXd exp_temp;
-    vector<double> stacker;
-    vector<double> stack_temp;
-    double fullLikeli = 0;
-    for(unsigned i = 0; i < Zscores.size(); i ++){
+    double fullLikeli = 0.0;
+    unsigned int i = 0;
+    unsigned int total = 0;
+
+    vector<VectorXd> marginal_i(Zscores.size());
+    vector<unsigned int> offsets(Zscores.size());
+    for (i = 0; i < Zscores.size(); i++) {
+        offsets[i] = total;
+        total += Zscores[i].size();
+    }
+
+    vector<double> stacker(total);
+
+    #pragma omp parallel for private(i) num_threads(thread_num)
+    for(i = 0; i < Zscores.size(); i ++){
         VectorXd temp(Zscores[i].size());
-        NewPost_chol(temp, Zscores[i], Lambdas[i], betas, Aijs[i], upper_chol[i], numberCausal, fullLikeli);
-        exp_temp = temp.array().exp();
-        marginal_i.push_back(exp_temp);
-        stack_temp =  eigen2vec(exp_temp);
-        stacker.insert(stacker.end(), stack_temp.begin(), stack_temp.end());
+        double tmpLL = NewPost_chol(temp, Zscores[i], Lambdas[i], betas, Aijs[i], upper_chol[i], numberCausal);
+
+        #pragma omp atomic
+        fullLikeli += tmpLL;
+
+        VectorXd exp_temp = temp.array().exp();
+        vector<double> stack_temp =  eigen2vec(exp_temp);
+        marginal_i[i] = exp_temp;
+
+        for (unsigned int j = 0; j < Zscores[i].size(); j++) {
+            stacker[j + offsets[i]] = stack_temp[j];
+        }
     }
 
     E_out.probs_locs = marginal_i;
@@ -689,7 +707,6 @@ void EM_Run_No_Opt(CausalProbs &probabilities ,int iter_max, vector<VectorXd> &Z
         }
         else{
             beta_int = beta_update;
-            
             iterations++;
         }
     }
@@ -759,7 +776,7 @@ void NewPost(VectorXd& Marginal, VectorXd& Zs, VectorXd& Lams, VectorXd& beta, M
     
 }
 
-void NewPost_chol(VectorXd& Marginal, VectorXd& Zs, VectorXd& Lams, VectorXd& beta, MatrixXd& Aj,  MatrixXd& upper_chol, int NC, double& fullLikeli){
+double NewPost_chol(VectorXd& Marginal, VectorXd& Zs, VectorXd& Lams, VectorXd& beta, MatrixXd& Aj,  MatrixXd& upper_chol, int NC){
     int numsnps = Zs.size();
     double runsum = 0;
     for(int i =0 ; i < Marginal.size(); i++){
@@ -798,8 +815,8 @@ void NewPost_chol(VectorXd& Marginal, VectorXd& Zs, VectorXd& Lams, VectorXd& be
     for(int f = 0 ; f < Marginal.size(); f++){
         Marginal[f] = Marginal[f]- runsum;
     }
-    fullLikeli = fullLikeli+runsum;
-    
+
+    return(runsum);
 }
 
 
