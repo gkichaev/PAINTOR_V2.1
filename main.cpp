@@ -649,10 +649,11 @@ double EM_Run_chol(CausalProbs &probabilites, int iter_max, vector<VectorXd> &Zs
 
 double Estep_chol(vector<VectorXd> &Zscores, vector<VectorXd> &Lambdas, VectorXd &betas, vector<MatrixXd> &Aijs, vector<MatrixXd> &upper_chol, CausalProbs &E_out, int numberCausal){
     
-    double fullLikeli = 0.0;
+    double final = 0;
     unsigned int i = 0;
     unsigned int total = 0;
 
+    double *fullLikeli = new double[Zscores.size()];
     vector<VectorXd> marginal_i(Zscores.size());
     vector<unsigned int> offsets(Zscores.size());
     for (i = 0; i < Zscores.size(); i++) {
@@ -667,8 +668,7 @@ double Estep_chol(vector<VectorXd> &Zscores, vector<VectorXd> &Lambdas, VectorXd
         VectorXd temp(Zscores[i].size());
         double tmpLL = NewPost_chol(temp, Zscores[i], Lambdas[i], betas, Aijs[i], upper_chol[i], numberCausal);
 
-        #pragma omp atomic
-        fullLikeli += tmpLL;
+        fullLikeli[i] = tmpLL;
 
         VectorXd exp_temp = temp.array().exp();
         vector<double> stack_temp =  eigen2vec(exp_temp);
@@ -681,8 +681,10 @@ double Estep_chol(vector<VectorXd> &Zscores, vector<VectorXd> &Lambdas, VectorXd
 
     E_out.probs_locs = marginal_i;
     E_out.probs_stacked = stacker;
+    for(i = 0; i < Zscores.size(); i++) final += fullLikeli[i];
+    delete [] fullLikeli;
     
-    return(fullLikeli);
+    return(final);
 }
 
 
