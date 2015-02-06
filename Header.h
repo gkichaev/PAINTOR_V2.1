@@ -48,7 +48,6 @@ vector<double> eigen2vec(VectorXd &vec);
 
 void ElementWiseMult(const vector<double>& el1, const vector<double>& el2, vector<double>& output);
 vector<vector<double> > Stack_Matrices(vector<MatrixXd> &mats);
-double CalcEuclidean(VectorXd &vec1 , VectorXd &vec2);
 vector<VectorXd> GetMultVectors(int locs, string root, string type);
 vector<MatrixXd> GetMultMatrices(int locs, string root, string type);
 void MakeAnnotations(vector<MatrixXd>& annotsRun, vector<MatrixXd>& allAnnots, vector<int>& indices);
@@ -57,14 +56,10 @@ void GetMultVectors(vector<VectorXd>& output, int locs, string root, string type
 void GetMultMatrices(vector<MatrixXd>& output, int locs, string root, string type);
 void GenerateLambdas(vector<VectorXd>& allLams, vector<VectorXd>& allZscores, double minNCP);
 void SigmaInvert(vector<MatrixXd> &Sigma_locs, vector<MatrixXd> &Inv_locs);
-void Optimize_Nlopt(vector<double>& x, double lower, double upper, double betaZero,  void* in_data);
-double EM_Run(CausalProbs &probabilites, int iter_max, vector<VectorXd> &Zscores, vector<VectorXd> &Lambdas, VectorXd &beta_int, vector<MatrixXd> &Aijs, vector<MatrixXd> &Sigmas, int numCausal);
-void EM_Run_No_Opt(CausalProbs &probabilities ,int iter_max, vector<VectorXd> &Zscores, vector<VectorXd> &Lambdas, VectorXd &beta_int, vector<MatrixXd> &Aijs, vector<MatrixXd> &Sigmas, int numCausal);
-double Estep(vector<VectorXd> &Zscores, vector<VectorXd> &Lambdas, VectorXd &betas, vector<MatrixXd> &Aijs, vector<MatrixXd> &Sigmas, vector<MatrixXd> &InvSigmas, CausalProbs &E_out, int numberCausal);
+void Optimize_Nlopt(vector<double>& x, vector<double> lower, vector<double> upper, double betaZero,  void* in_data);
 VectorXd Zscores2Post(VectorXd& Zs);
 int NextCombo(VectorXd& c, int k, int n);
 void BuildCausalVector(VectorXd& vec2Build , VectorXd& index );
-void NewPost(VectorXd& Marginal, VectorXd& Zs, VectorXd& Lams, VectorXd& beta, MatrixXd& Aj, MatrixXd& InvLD, MatrixXd& LD, int NC, double& fullLikeli);
 void PrintVecXD(VectorXd& vec);
 void EvalAijs(MatrixXd& Aj,VectorXd& beta, VectorXd& priorJ);
 double Prob_CNew(VectorXd& priorJ,VectorXd& beta, VectorXd& C_vector);
