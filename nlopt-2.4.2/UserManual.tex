@@ -1,0 +1,307 @@
+\documentclass{article}
+
+\usepackage{amsmath,amsfonts}
+\usepackage{amsthm,amssymb,amsopn}
+\usepackage{bm}
+\usepackage{epsfig}
+\usepackage{subfigure}
+\usepackage{graphicx}
+\usepackage{fullpage}
+\usepackage{authblk}
+\usepackage{color}
+\usepackage{multirow}
+\usepackage{rotating}
+\usepackage{soul}
+\usepackage{morefloats}
+\usepackage[normalem]{ulem}
+\usepackage{url}
+\usepackage{xcolor}
+\begin{document}
+
+\def\US{\textunderscore}
+\newcommand*{\myfont}{\fontfamily{pcr}\selectfont}
+
+\newcommand{ \red}[1]{
+\textcolor{red}{#1}
+}
+
+\title{PAINTOR (v2.0) User Manual}
+
+\author{Gleb Kichaev}
+
+
+
+\section{Introduction}
+
+We provide here documentation supporting PAINTOR (V2.0). Full descriptions of the methods can be found in: \\
+
+\textbf{Kichaev G, Yang WY, Lindstrom S, Hormozdiari F, Eskin E, Price AL, Kraft P, Pasaniuc B. Integrating functional data to prioritize causal variants in statistical fine-mapping studies. \emph{PLoS genetics 10.10 (2014): e1004722.} }\\ 
+
+\textbf{Kichaev G and Pasaniuc B. Leveraging functional annotation data in trans-ethnic fine-mapping studies. \emph{In Revision} }\\  
+\\
+\noindent 
+PAINTOR is a command line tool written in C++. It is capable of conducting fine-mapping on either single populations or multiple populations simultaneously and integrate functional annotations. For quick start simply type {\myfont PAINTOR} for list of options.
+
+\subsection{Updates}
+\begin{itemize}
+\item V2.0.0 (06/08/15) Major update. Added functionality for multi-ethnic fine-mapping.
+\item V1.1.1 (11/19/14) Minor I/O bug fix
+\item V1.1.0 (11/10/14) Cholesky decomposition of the LD matrix to improve stability and performance.
+\item V1.0 (07/23/14) First stable release of the PAINTOR software.
+\end{itemize}
+
+
+
+\section{Installation}
+
+The early release of PAINTOR is optimized to run on a UNIX-like system. To install the software, unpack the zip file in the directory you want PAINTOR installed. CD into the PAINTOR folder and run the installation script:\\\\
+{\myfont
+$>$ tar -xvf PAINTOR\_FineMapping$*$.tar.gz \\
+$>$ cd PAINTOR \\
+$>$ bash install.sh \\
+}\\
+This will unpack and compile all the necessary dependencies and create an executable {\myfont PAINTOR}. The two main libraries that PAINTOR uses are Eigen V3.2 and NLopt  V2.4.2. \\\\
+\noindent
+\url{http://eigen.tuxfamily.org/index.php?title=Main_Page}\\
+\url{http://ab-initio.mit.edu/wiki/index.php/NLopt}\\
+
+\section{Input}
+For each locus of interest, there are three input files needed to run the software [File Dimensions]:
+\begin{enumerate}
+  \item A \emph{Locus file} that contains the Z-scores from all the population of interest [N+1 x F]
+  \item \emph{LD matrix file(s)} (need multiple matrices if doing multi-ethnic fine-mapping) [N x N]
+  \item An \emph{Annotation matrix file} with annotation indicators [N+1 x A]
+\end{enumerate}
+N = \# of SNPs at a locus, F = \# of fields in the Locus file, A = total \# number of annotations.
+A directory containing examples files of for a fine-mapping study on 28 loci in three populations is included in the {\myfont SampleData/} directory.  
+\subsection{File Formats}
+All file formats are assumed to be single space delimited. If your file is tab-delimited you can use the following command to modify:\\
+{\myfont
+$>$ sed -i 's/\textbackslash t/ /g' <filename> 
+}
+\subsubsection{Locus file}
+
+The locus file should at the very minimum contain the Z-scores for all the populations, though metadata on each SNP such as chromosome, position, and rsid are recommended. The top line of the locus must contain a header with the names of the fields. The z-score of a SNP is the Wald statistic ($\frac{\hat{\beta}}{SE(\hat{\beta})}$) of obtained from a phenotype on the SNP. If a SNP is monomorphic or missing in one of the populations the corresponding Z-score must be either a {\myfont 0} or {\myfont NA} for the software to run as intended. \\\\
+
+\noindent \uline{\textbf{Example:}} A Locus file corresponding to 4 SNPs across two populations with SNP 1 monomorphic in population 2\\
+\\
+
+{\myfont \noindent
+CHR POS RSID ZSCORE.P1 ZSCORE.P2 \\
+chr1  10 rs1 1.5 NA\\
+chr1  15 rs2 -3.2 -1.5\\
+chr1  20 rs3 4.5 5.5\\
+chr1  25 rs4 0.8 -0.5\\
+}\\
+Note:  An arbitrary number of fields can be included in the Locus files which we leave to the discretion of the user. The Z-score headers are specified with the {\myfont -Zhead} flag.
+
+\subsubsection{LD matrix file}
+The LD file(s) contains a symmetric matrix of Pearson correlation coefficients where entry i,j will correspond to the correlation between SNPs i and j ($r_{ij}$). White space must separate individual columns of the matrix. This file has no header.\\\\
+ If doing fine-mapping over multiple populations, each population must have its own LD matrix file of the same size. We note there will be times where a SNP may be monomorphic (or missing) in one of the populations. These SNPs will be encoded as a 1 in entry $(i,i)$ and 0 for all other entries $(i,j)$ \& $(j,i)$ for $j\ne i$. \\
+ \\
+\noindent \uline{\textbf{Example:}}{  4 SNP LD matrices for two populations, where SNP 1 is monomorphic in population 2}\\
+\\{\myfont
+Population 1 \\
+\\
+1.0 0.5 0.5 0.2\\
+0.5 1.0 0.3 0.1\\
+0.5 0.3 1.0 0.9\\
+0.2 0.1 0.9 1.0\\
+\\
+Population 2\\
+\\
+1.0 0.0 0.0 0.0\\
+0.0 1.0 0.2 0.1\\
+0.0 0.2 1.0 0.3\\
+0.0 0.1 0.3 1.0\\
+\\
+}
+\\
+Note:
+\textbf{\red{VERY IMPORTANT!}} Particular care must be taken when computing LD from a reference panel such the 1000 genomes. It is imperative that all the reference and alternate alleles for SNPs from which the z-scores were computed match the reference and alternate alleles of the reference panel. The output of PAINTOR will not be correct if there are mismatches of this type in the data.
+
+\subsubsection{Annotation Matrix File}
+There should be an annotation file for each locus that contains a matrix of annotations that are typically binary. The rows of the matrix correspond to SNPs at that locus and columns represent unique annotations. For example, if the first column of the matrix represented ``coding" region, and entry [1,1] of the matrix was equal to 1, this would signify that SNP 1 falls within a coding region. The first line in the file must be header identifying the annotations. Each annotation must have a unique identifier.\\
+
+\noindent \uline{\textbf{Example:}}{ A locus with 4 SNPs and three potential annotations \{Coding, DHS, Enhancer\}}\\
+\\
+{\myfont
+Coding DHS1 DHS2\\
+1 0 1\\
+0 1 0\\
+1 1 1\\
+1 0 0 \\
+}
+
+\subsection{File Naming conventions for input}
+PAINTOR is designed to run on multiple loci and/or populations simultaneously. The program takes as input a single file with a list of file names that contain the z-scores (and other metadata) for all the loci the user wants to consider jointly. By convention, these names serve as the prefix for the entire locus. The files containing the corresponding LD matrix/matrices and annotation file will have suffixes appended to them that are specified in the command (see  flags described below). For example, if one wanted to run PAINTOR on three loci, the input file would look like this:\\
+\\
+{\myfont
+$>$ cat input.file\\
+Locus1\\
+Locus2\\
+Locus3\\
+}
+\\
+Note: The input file name is specified with {\myfont -input} flag. {The directory that contained all the files for both populations would have the following:}\\\\
+{\myfont
+$>$ ls RunDirectory/ \\
+Locus1\\
+Locus1.LD1\\
+Locus1.LD2\\
+Locus1.annotations\\
+Locus2\\
+Locus2.LD1\\
+Locus2.LD2\\
+Locus2.annotations\\
+Locus3\\
+Locus3.LD1\\
+Locus3.LD2\\
+Locus3.annotations\\
+}
+\\
+Note: The input directory can be specified using the {\myfont -in} flag
+\section{Output}
+
+
+\subsection{Posterior Probabilities}
+
+The posterior probabilities for snps to be causal will be output to a .results file for each locus and will contain the input data with an additional Posterior\_Prob column appended. \\
+\\
+\noindent \uline{\textbf{Example:}}{A results file for a locus of 4 SNPs}\\
+\\
+{\myfont
+CHR POS RSID ZSCORE.P1 ZSCORE.P2 Posterior\_Prob\\
+chr1  10 rs1 1.5 NA 0.013\\
+chr1  15 rs2 -3.2 -1.5 0.130\\
+chr1  20 rs3 4.5 5.5 0.980\\
+chr1  25 rs4 0.8 -0.5 0.002\\
+}
+
+
+
+\noindent
+Note:  The default filename will be the locus name with ".results" appended to it.  User can change the name using the {\myfont -OUTname} flag. To designate an output directory use the {\myfont -out} flag.
+
+\subsection{Gamma Estimates}
+
+A file that has the effect size estimates for each of the annotation(s) used. PAINTOR automatically estimates the baseline annotation (A0) and will always output this values as the first line in the file.\\
+
+\noindent \uline{\textbf{Example:}}{ Estimates for 2 annotations (+1 baseline) \{Baseline, Coding, DHS1\}}\\
+\\
+{\myfont
+Baseline Coding DHS1\\
+5.2 -1.3 2.0\\
+}
+\\
+These effect sizes can be converted to probabilities using the expit transformation. For the preceding output the corresponding prior probabilities can be calculated as follows:\\
+\\
+The baseline prior probability for any SNP in the fine-mapping dataset to be causal is obtained as:\\
+{\myfont
+\begin{eqnarray*}
+\frac{1}{1+exp(\gamma_0)} &=&\frac{1}{1+exp(5.2)}\\\\
+&=&0.0055 
+\end{eqnarray*}
+}
+The prior probability for a SNP in Coding coding:
+{\myfont
+\begin{eqnarray*}
+\frac{1}{1+exp(\gamma_0+\gamma_1)} &= & \frac{1}{1+exp(5.2+(-1.3))}\\\\
+&=&0.01984 
+\end{eqnarray*}
+}
+The relative probability for a SNP to be causal given that it is in Coding is simply computed as
+{
+\begin{eqnarray*}
+\myfont
+\frac{0.01984}{0.0055} &= &3.6\\\\
+\end{eqnarray*}
+}
+Note:  The default filename is “Enrichment.Parameters”. User can change name using the {\myfont -Gname} flag
+
+\subsection{Final log-likelihood}
+
+A file that has the final log likelihood of the PAINTOR model. This can be used in subsequent steps to conduct a likelihood ratio test (LRT) for significance of the annotation effect sizes. To test the marginal significance of a single annotation (A1) one would first fit a PAINTOR model with just the baseline annotation A0 (M0) then fit a joint model with both annotations A0, A1 (M1). The resultant log likelihoods for each model can be used to compute an LRT statistic which will be distributed asymptotically $\chi^2$ with degrees of freedom = 1 (under the null). \\\\
+\noindent \uline{\textbf{Example:}}{ Testing significance of annotation A1}\\\\
+Model 1 log likeilhood with only baseline annotation (A0)\\
+-10039\\
+Model 2 log likeilhood with both annotations(A0, A1) \\
+-10036\\
+\begin{eqnarray*}
+LRT&=&-2 [ ln(likelihood(M0))-ln(likelihood(M1))]\\
+&=&-2[-10039-(-10036)]\\
+&=&6 
+\end{eqnarray*}
+ $\sim \chi^2$ (df=1) p-value=  0.0143
+
+\section{Running software}
+
+\subsection{PAINTOR}
+
+{\myfont
+\textbf{Usage}: PAINTOR -input.files [input filename] -in [input directory] -out [output directory] -Zhead [Zscore header(s)] -LDname [LD suffix(es)] \\ -annotations [annotation1,annotation2...]  <other options> \\
+\\
+OPTIONS: \textbf{-flag} 	 Description [default setting]\\
+\\
+\textbf{-input} 	 (required) Filename of the input file containing the list of the fine-mapping loci [default: input.files ]\\ 
+\\
+\textbf{-Zhead} 	 (required) The name(s) of the Zscore column in the header of the locus file (comma separated) [default: N/A] \\
+\\
+\textbf{-LDname }	 (required) Suffix(es) for LD files. Must match the order of Z-scores in which the -Zhead flag is specified (comma separated) [Default:N/A] \\
+\\
+\textbf{-c 	} The number of causal variants to consider per locus [default: 2]\\
+\\
+\textbf{-annotations} 	 The names of the annotations to include in model (comma separated) [default: N/A] \\
+\\
+\textbf{-in} 	 Input directory with all run files [default: ./ ] \\
+\\
+\textbf{-out }	 Output directory where output will be written [default: ./ ]\\
+\\
+\textbf{-Gname }	 Output Filename for enrichment estimates [default: Enrichment.Estimate] \\
+\\
+\textbf{-RESname 	} Suffix for output files of results [Default: results] \\
+\\
+\textbf{-ANname} 	 Suffix for annotation files [Default: annotations] \\
+\\
+\textbf{-MI 	} Maximum iterations for algorithm to run [Default: 10] \\
+\\
+\textbf{-post1CV 	} Fast conversion of Z-scores to posterior probabilities assuming a single casual variant and no annotations [Default: False] \\
+\\
+\textbf{-GAMinital }	 Initialize the enrichment parameters to a pre-specified value (comma separated) [Default: 0,...,0] \\
+}
+
+\noindent \uline{\textbf{Example:}}{ Running PAINTOR with two populations, considering up to three causal variants per locus, and integrating Coding and DHS annotations .}\\
+\\
+{\myfont
+$>$ ./PAINTOR -input input.files -Zhead  ZSCORE.P1,ZSCORE.P2 -LDname LD1,LD2 -in RunDirectory/ -out OutDirectory/ -c 3 -annotations Coding,DHS \\
+}
+\\
+\subsection{Suggested Pipeline}
+In order to determine which annotations are relevant to the phenotype being considered, we recommend running PAINTOR on each annotation independently. \\\\
+\noindent
+
+\noindent \uline{\textbf{Example:}}{ Pipeline for a pool of 100 annotations.}\\
+\\
+{\myfont
+\noindent
+$>$ ./PAINTOR -input input.files -Zhead  ZSCORE.P1,ZSCORE.P2 -LDname LD1,LD2 -in RunDirectory/ -out OutDirectory/ -c 2 -Gname Enrich.Base -Lname Likeli.Base \\
+$>$ ./PAINTOR -input input.files -Zhead  ZSCORE.P1,ZSCORE.P2 -LDname LD1,LD2 -in RunDirectory/ -out OutDirectory/ -c 2 -annotations A1  -Gname Enrich.A1 -Lname Likeli.A1  \\
+$>$ ./PAINTOR -input input.files -Zhead  ZSCORE.P1,ZSCORE.P2 -LDname LD1,LD2 -in RunDirectory/ -out OutDirectory/ -c 2 -annotations A2  -Gname Enrich.A2 -Lname Likeli.A2  \\
+$>$ ./PAINTOR -input input.files -Zhead  ZSCORE.P1,ZSCORE.P2 -LDname LD1,LD2 -in RunDirectory/ -out OutDirectory/ -c 2 -annotations A3  -Gname Enrich.A3 -Lname Likeli.A3  \\
+.\\
+.\\
+.\\
+$>$ ./PAINTOR -input input.files -Zhead  ZSCORE.P1,ZSCORE.P2 -LDname LD1,LD2 -in RunDirectory/ -out OutDirectory/ -c 2 -annotations A3  -Gname Enrich.100 -Lname Likeli.100  \\
+}
+
+\noindent
+After obtaining the output for all of the annotations marginally, prioritize annotations based on the improvement in the model fit. Take the top annotations (usually no more than 4 or 5) to enter the final model that are roughly uncorrelated with one another. We recommend correlation matrices for this process.  Then use those annotations in a final model to compute trait-specific posterior probabilities for causality:\\
+\\
+{\myfont
+\noindent
+$>$ ./PAINTOR -input input.files -Zhead  ZSCORE.P1,ZSCORE.P2 -LDname LD1,LD2 -in RunDirectory/ -out OutDirectory/ -c 2 -annotations A5,A20,A93  -Gname Enrich.Final -Lname Likeli.Final  \\
+}
+
+
+
+\end{document}
