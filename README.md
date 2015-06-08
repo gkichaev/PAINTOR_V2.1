@@ -38,5 +38,9 @@ This will create an executable "PAINTOR". Sample data is provided with the packa
 
 If everything worked correctly the final log-likelihod should be: `-2129.21235`
 
-For quick start simply type PAINTOR in the terminal. For detailed information on input files and command line flags see the user manual provided.
+For quick start simply type:
+
+ `$ ./PAINTOR 
+
+For detailed information on input files and command line flags see the user manual provided.
 
