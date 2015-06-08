@@ -1,6 +1,0 @@
-deprecated.lo: deprecated.c nlopt.h \
- /usr/lib/gcc/x86_64-redhat-linux/4.4.7/include/stddef.h
-
-nlopt.h:
-
-/usr/lib/gcc/x86_64-redhat-linux/4.4.7/include/stddef.h:
