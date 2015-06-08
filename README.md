@@ -34,13 +34,13 @@ Download the latest [version](https://github.com/gkichaev/PAINTOR_FineMapping/re
 
 This will create an executable "PAINTOR". Sample data is provided with the package. To test that the installation worked properly, type:
 
-`$ ./PAINTOR -input SampleData/input.files -in SampleData/ -out SampleData/ -Zhead Zscore.p1,Zscore.p2,Zscore.p3 -LDname LD.p1,LD.p2,LD.p3 -c 2 -annotations Coding,DHS 
+`$ ./PAINTOR -input SampleData/input.files -in SampleData/ -out SampleData/ -Zhead Zscore.p1,Zscore.p2,Zscore.p3 -LDname LD.p1,LD.p2,LD.p3 -c 2 -annotations Coding,DHS i`
 
 If everything worked correctly the final log-likelihod should be: `-2129.21235`
 
 For quick start simply type:
 
-`$ ./PAINTOR 
+`$ ./PAINTOR` 
 
 For detailed information on input files and command line flags see the user manual provided.
 
