@@ -73,7 +73,7 @@ For each locus of interest, there are three input files needed to run the softwa
   \item An \emph{Annotation matrix file} with annotation indicators [N+1 x A]
 \end{enumerate}
 N = \# of SNPs at a locus, F = \# of fields in the Locus file, A = total \# number of annotations.
-A directory containing examples files of for a fine-mapping study on 28 loci in three populations is included in the {\myfont SampleData/} directory.  
+Sample files are included in the {\myfont SampleData/} directory. 
 \subsection{File Formats}
 All file formats are assumed to be single space delimited. If your file is tab-delimited you can use the following command to modify:\\
 {\myfont
@@ -81,7 +81,7 @@ $>$ sed -i 's/\textbackslash t/ /g' <filename>
 }
 \subsubsection{Locus file}
 
-The locus file should at the very minimum contain the Z-scores for all the populations, though metadata on each SNP such as chromosome, position, and rsid are recommended. The top line of the locus must contain a header with the names of the fields. The z-score of a SNP is the Wald statistic ($\frac{\hat{\beta}}{SE(\hat{\beta})}$) of obtained from a phenotype on the SNP. If a SNP is monomorphic or missing in one of the populations the corresponding Z-score must be either a {\myfont 0} or {\myfont NA} for the software to run as intended. \\\\
+The locus file should at the very minimum contain the Z-scores for all the populations, though metadata on each SNP such as chromosome, position, and rsid are recommended. The top line of the locus file must contain a header with the names of the fields. The Z-score of a SNP is the Wald statistic ($\frac{\hat{\beta}}{SE(\hat{\beta})}$) obtained from standard regression of the phenotype onto the SNP. If a SNP is monomorphic or missing in one of the populations, the corresponding Z-score must be either a {\myfont 0} or {\myfont NA} for the software to run as intended. \\\\
 
 \noindent \uline{\textbf{Example:}} A Locus file corresponding to 4 SNPs across two populations with SNP 1 monomorphic in population 2\\
 \\
@@ -118,7 +118,7 @@ Population 2\\
 }
 \\
 Note:
-\textbf{\red{VERY IMPORTANT!}} Particular care must be taken when computing LD from a reference panel such the 1000 genomes. It is imperative that all the reference and alternate alleles for SNPs from which the z-scores were computed match the reference and alternate alleles of the reference panel. The output of PAINTOR will not be correct if there are mismatches of this type in the data.
+\textbf{\red{VERY IMPORTANT!}} Particular care must be taken when computing LD from a reference panel such the 1000 genomes. It is imperative that all the reference and alternate alleles for SNPs from which the Z-scores were computed match the reference and alternate alleles of the reference panel. The output of PAINTOR will not be correct if there are mismatches of this type in the data.
 
 \subsubsection{Annotation Matrix File}
 There should be an annotation file for each locus that contains a matrix of annotations that are typically binary. The rows of the matrix correspond to SNPs at that locus and columns represent unique annotations. For example, if the first column of the matrix represented ``coding" region, and entry [1,1] of the matrix was equal to 1, this would signify that SNP 1 falls within a coding region. The first line in the file must be header identifying the annotations. Each annotation must have a unique identifier.\\
@@ -134,7 +134,7 @@ Coding DHS1 DHS2\\
 }
 
 \subsection{File Naming conventions for input}
-PAINTOR is designed to run on multiple loci and/or populations simultaneously. The program takes as input a single file with a list of file names that contain the z-scores (and other metadata) for all the loci the user wants to consider jointly. By convention, these names serve as the prefix for the entire locus. The files containing the corresponding LD matrix/matrices and annotation file will have suffixes appended to them that are specified in the command (see  flags described below). For example, if one wanted to run PAINTOR on three loci, the input file would look like this:\\
+PAINTOR is designed to run on multiple loci and/or populations simultaneously. The program takes as input a single file with a list of file names that contain the Z-scores (and other metadata) for all the loci the user wants to consider jointly. By convention, these names serve as the prefix for the entire locus. The files containing the corresponding LD matrix/matrices and annotation file will have suffixes appended to them that are specified in the command (see  flags described below). For example, if one wanted to run PAINTOR on three loci, the input file would look like this:\\
 \\
 {\myfont
 $>$ cat input.file\\
@@ -270,7 +270,7 @@ OPTIONS: \textbf{-flag} 	 Description [default setting]\\
 \textbf{-GAMinital }	 Initialize the enrichment parameters to a pre-specified value (comma separated) [Default: 0,...,0] \\
 }
 
-\noindent \uline{\textbf{Example:}}{ Running PAINTOR with two populations, considering up to three causal variants per locus, and integrating Coding and DHS annotations .}\\
+\noindent \uline{\textbf{Example:}}{ Running PAINTOR with two populations, considering up to three causal variants per locus, and integrating Coding and DHS annotations .}\\s
 \\
 {\myfont
 $>$ ./PAINTOR -input input.files -Zhead  ZSCORE.P1,ZSCORE.P2 -LDname LD1,LD2 -in RunDirectory/ -out OutDirectory/ -c 3 -annotations Coding,DHS \\
@@ -291,7 +291,7 @@ $>$ ./PAINTOR -input input.files -Zhead  ZSCORE.P1,ZSCORE.P2 -LDname LD1,LD2 -in
 .\\
 .\\
 .\\
-$>$ ./PAINTOR -input input.files -Zhead  ZSCORE.P1,ZSCORE.P2 -LDname LD1,LD2 -in RunDirectory/ -out OutDirectory/ -c 2 -annotations A3  -Gname Enrich.100 -Lname Likeli.100  \\
+$>$ ./PAINTOR -input input.files -Zhead  ZSCORE.P1,ZSCORE.P2 -LDname LD1,LD2 -in RunDirectory/ -out OutDirectory/ -c 2 -annotations A100  -Gname Enrich.100 -Lname Likeli.100  \\
 }
 
 \noindent
