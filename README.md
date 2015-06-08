@@ -40,7 +40,7 @@ If everything worked correctly the final log-likelihod should be: `-2129.21235`
 
 For quick start simply type:
 
- `$ ./PAINTOR 
+`$ ./PAINTOR 
 
 For detailed information on input files and command line flags see the user manual provided.
 
