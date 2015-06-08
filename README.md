@@ -1,8 +1,8 @@
 # PAINTOR
 Probabilistic Annotation INtegraTOR
 
-## UPDATE 06/8/15
-Announcing PAINTOR v2.0! We have expanded PAINTOR functionality to conduct fine-mappng with multi-ethnic cohorts. This latest release inclucdes updates to the input formats and command line flags. Please see the new User Manual for complete details.  
+## UPDATE 06/08/2015
+Announcing PAINTOR v2.0! We have expanded PAINTOR functionality to conduct fine-mappng with multi-ethnic cohorts. This latest release includes updates to the input formats and command line flags. Please see the new User Manual for complete details.  
 
 ## Description
 
@@ -34,7 +34,7 @@ Download the latest [version](https://github.com/gkichaev/PAINTOR_FineMapping/re
 
 This will create an executable "PAINTOR". Sample data is provided with the package. To test that the installation worked properly, type:
 
-`$ ./PAINTOR -input SampleData/input.files -in SampleData/ -out SampleData/ -Zhead Zscore.p1,Zscore.p2,Zscore.p3 -LDname LD.p1,LD.p2,LD.p3 -c 2 -annotations Coding,DHS i`
+`$ ./PAINTOR -input SampleData/input.files -in SampleData/ -out SampleData/ -Zhead Zscore.p1,Zscore.p2,Zscore.p3 -LDname LD.p1,LD.p2,LD.p3 -c 2 -annotations Coding,DHS`
 
 If everything worked correctly the final log-likelihod should be: `-2129.21235`
 
