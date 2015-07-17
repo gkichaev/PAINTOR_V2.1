@@ -1,7 +1,7 @@
 # PAINTOR
 Probabilistic Annotation INtegraTOR
 
-#UPDATE 07/16/2015
+##UPDATE 07/16/2015
 Software (v2.1) has been updated with new strategy of setting Non-centrality Parameters (NCPs). See User Manual for details. 
 
 ## *UPDATE 06/08/2015*
