@@ -6,7 +6,7 @@ Announcing PAINTOR v2.0! We have expanded PAINTOR functionality to conduct fine-
 
 ## Description
 
-We provide a command line implementation of the PAINTOR and PAINTOR Trans-ethnic frameworks described in [Kichaev et al. (PLOS Genetics, 2014)](http://www.plosgenetics.org/article/info%3Adoi%2F10.1371%2Fjournal.pgen.1004722) and Kichaev and Pasaniuc (In Review, 2015). Briefly, PAINTOR is a statistical fine-mapping method that integrates functional genomic data with association strength from potentially multiple populations to prioritize variants for follow-up analysis. The software runs on multiple fine-mapping loci and/or populations simultaneously and takes as input the following data for each set of SNPs at a locus
+We provide a command line implementation of the PAINTOR and PAINTOR Trans-ethnic frameworks described in [Kichaev et al. (PLOS Genetics, 2014)](http://www.plosgenetics.org/article/info%3Adoi%2F10.1371%2Fjournal.pgen.1004722) and Kichaev and Pasaniuc (American Journal of Human Genetics, 2015)[http://www.cell.com/ajhg/abstract/S0002-9297(15)00243-8]. Briefly, PAINTOR is a statistical fine-mapping method that integrates functional genomic data with association strength from potentially multiple populations to prioritize variants for follow-up analysis. The software runs on multiple fine-mapping loci and/or populations simultaneously and takes as input the following data for each set of SNPs at a locus
 
 
 1. Summary Association Statistics (Z-scores)
@@ -28,7 +28,7 @@ The software has two dependencies: [1] Eigen v3.2 (matrix library) [2] NLopt v2.
 
 Download the latest [version](https://github.com/gkichaev/PAINTOR_FineMapping/releases) of the software into your desired target directory. Then unpack and install the software with the following commands:
 
-`$ tar -xvf PAINTOR_FineMapping-2.0.tar`
+`$ tar -xvf PAINTOR_FineMapping`
 
 `$ cd PAINTOR_FineMapping`
 
@@ -38,7 +38,7 @@ This will create an executable "PAINTOR". Sample data is provided with the packa
 
 `$ ./PAINTOR -input SampleData/input.files -in SampleData/ -out SampleData/ -Zhead Zscore.p1,Zscore.p2,Zscore.p3 -LDname LD.p1,LD.p2,LD.p3 -c 2 -annotations Coding,DHS`
 
-If everything worked correctly the final log-likelihood should be: `-2129.21235`
+If everything worked correctly the final log-likelihood should be: `-2115.89773`
 
 For quick start simply type:
 
