@@ -1,12 +1,15 @@
 # PAINTOR
 Probabilistic Annotation INtegraTOR
 
-## UPDATE 06/08/2015
+#UPDATE 07/16/2015
+Software (v2.1) has been updated with new strategy of setting Non-centrality Parameters (NCPs). See User Manual for details. 
+
+## *UPDATE 06/08/2015*
 Announcing PAINTOR v2.0! We have expanded PAINTOR functionality to conduct fine-mapping with multi-ethnic cohorts. This latest release includes updates to the input formats and command line flags. Please see the new User Manual for complete details.
 
 ## Description
 
-We provide a command line implementation of the PAINTOR and PAINTOR Trans-ethnic frameworks described in [Kichaev et al. (PLOS Genetics, 2014)](http://www.plosgenetics.org/article/info%3Adoi%2F10.1371%2Fjournal.pgen.1004722) and Kichaev and Pasaniuc (American Journal of Human Genetics, 2015)[http://www.cell.com/ajhg/abstract/S0002-9297(15)00243-8]. Briefly, PAINTOR is a statistical fine-mapping method that integrates functional genomic data with association strength from potentially multiple populations to prioritize variants for follow-up analysis. The software runs on multiple fine-mapping loci and/or populations simultaneously and takes as input the following data for each set of SNPs at a locus
+We provide a command line implementation of the PAINTOR and PAINTOR Trans-ethnic frameworks described in [Kichaev et al. (PLOS Genetics, 2014)](http://www.plosgenetics.org/article/info%3Adoi%2F10.1371%2Fjournal.pgen.1004722) and [Kichaev and Pasaniuc (American Journal of Human Genetics, 2015)](http://www.cell.com/ajhg/abstract/S0002-9297(15)00243-8). Briefly, PAINTOR is a statistical fine-mapping method that integrates functional genomic data with association strength from potentially multiple populations to prioritize variants for follow-up analysis. The software runs on multiple fine-mapping loci and/or populations simultaneously and takes as input the following data for each set of SNPs at a locus
 
 
 1. Summary Association Statistics (Z-scores)
