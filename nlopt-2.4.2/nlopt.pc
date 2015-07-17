@@ -1,4 +1,4 @@
-prefix=/Users/glebkichaev/Dropbox/PAINTOR_2.0
+prefix=/Users/glebkichaev/Documents/Software/PAINTOR_FineMapping
 exec_prefix=${prefix}
 libdir=${exec_prefix}/lib
 includedir=${prefix}/include

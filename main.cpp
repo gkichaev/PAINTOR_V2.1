@@ -19,7 +19,7 @@ void Welcome_Message(){
     cout << "Welcome to PAINTOR v2.0. Copyright Gleb Kichaev 2015." << endl;
     cout << "For questions or bug reports please contact: gkichaev@ucla.edu \n \n "<< endl;
     cout << "For required files and format specifications see User Manual \n \n" << endl;
-    cout << "Usage: PAINTOR -input.files [input_filename] -in [input_directory] -out [output_directory] -Zhead [Zscore_header(s)] -LDname [LD_suffix(es)]  -annotations [annot_name1,annot_name2,...]  <other options> \n"<< endl;
+    cout << "Usage: PAINTOR -input [input_filename] -in [input_directory] -out [output_directory] -Zhead [Zscore_header(s)] -LDname [LD_suffix(es)]  -annotations [annot_name1,annot_name2,...]  <other options> \n"<< endl;
     cout << "OPTIONS: -flag \t Description [default setting]  \n" << endl;
     cout << "-input \t (required) Filename of the input file containing the list of the fine-mapping loci [default: input.files]" << endl;
     cout << "-c \t The number of causal variants to consider per locus [default: 2]" << endl;
@@ -29,12 +29,13 @@ void Welcome_Message(){
     cout << "-in \t Input directory with all run files [default: ./ ]" << endl;
     cout << "-out \t Output directory where output will be written [default: ./ ]" << endl;
     cout << "-Gname \t Output Filename for enrichment estimates [default: Enrichment.Estimate]" << endl;
+    cout << "-Lname \t Output Filename for log likelihood [default: Log.Likelihood]" << endl;
     cout << "-RESname \t Suffix for ouput files of results [Default: results] " << endl;
     cout << "-ANname \t Suffix for annotation files [Default: annotations]" << endl;
     cout << "-MI \t Maximum iterations for algorithm to run [Default: 10]" << endl;
     cout << "-post1CV \t fast conversion of Z-scores to posterior probabilites assuming a single casual variant and no annotations [Default: False]" << endl;
     cout << "-GAMinital \t inititalize the enrichment parameters to a pre-specified value (comma separated) [Default: 0,...,0]" << endl;
-
+    cout << "-NCP \t how to set Non-Centrality Parameter {old, default} [Default: default]" << endl ;
     cout << endl << endl ;
 }
 
@@ -52,7 +53,7 @@ int main(int argc, const char * argv[])
     vector<string> annot_names;
     int max_causal = 2;
     string gammaName = "Enrichment.Values";
-    string likeli_name;
+    string likeli_name= "Log.Likelihood";
     string single_post_flag;
     int maxIter= 10;
     string LD_suffix = "ld";
@@ -60,6 +61,7 @@ int main(int argc, const char * argv[])
     string results_suffix = "results";
     vector <string> LD_all_names;
     vector<string> z_headers;
+    string ncp_flag= "default";
 
     single_post_flag = "False";
 
@@ -161,11 +163,15 @@ int main(int argc, const char * argv[])
 
            else if(argComp.compare("-RESname") == 0){
                results_suffix = argv[i+1];
-               results_suffix = "." + results_suffix;
            }
 
            else if(argComp.compare("-GAMinitial") == 0){
                gamma_initial = argv[i+1];
+           }
+
+           else if(argComp.compare("-NCP")==0){
+                ncp_flag = argv[i+1];
+
            }
 
        }
@@ -175,10 +181,22 @@ int main(int argc, const char * argv[])
     vector<vector<VectorXd>> all_transformed_statistics;
     vector<vector<VectorXd>> all_lambdas;
     vector<vector<MatrixXd>> all_upper_cholesky;
+    vector<vector<MatrixXd>> all_sigmas;
     vector<vector<string>> all_snp_info;
     vector<MatrixXd> all_annotations;
     vector<string> all_headers;
-    Get_All_Input(input_files, in_dir, z_headers, annot_names, all_transformed_statistics, all_lambdas, all_upper_cholesky, all_annotations, LD_all_names, annot_suffix,all_snp_info,all_headers);
+    Get_All_Input(input_files, in_dir, z_headers, annot_names, all_transformed_statistics, all_lambdas, all_upper_cholesky, all_annotations, LD_all_names, annot_suffix, all_snp_info, all_headers);
+
+    for(unsigned int i =0; i < all_upper_cholesky.size();i++){
+        vector<MatrixXd> sigma_locs;
+        for(unsigned int j =0; j < all_upper_cholesky[i].size();j++){
+            MatrixXd sigma = all_upper_cholesky[i][j].transpose()*all_upper_cholesky[i][j];
+            sigma_locs.push_back(sigma);
+        }
+        all_sigmas.push_back(sigma_locs);
+    }
+
+
     CausalProbs runProbs;
     VectorXd gamma_estimates(all_annotations[0].cols());
     gamma_estimates.setZero();
@@ -187,6 +205,7 @@ int main(int argc, const char * argv[])
         vector<string> gamma_initial_split = split(gamma_initial, ',');
         if(gamma_initial_split.size() != annot_names.size()+1){
             cout << "Warning: Incorrect number of Enrichment parameters specified. Pre-setting all paramters to zero" << endl;
+
         }
         else{
 
@@ -214,7 +233,7 @@ int main(int argc, const char * argv[])
     }
 
     else{
-        double Final_loglikeli = EM_Run_chol(runProbs, maxIter , all_transformed_statistics,all_lambdas, gamma_estimates, all_annotations, all_upper_cholesky, max_causal);
+        double Final_loglikeli = EM_Run_chol(runProbs, maxIter , all_transformed_statistics,all_lambdas, gamma_estimates, all_annotations, all_upper_cholesky, max_causal, all_sigmas, ncp_flag);
 
         Write_All_Output(input_files, out_dir, results_suffix, runProbs, all_snp_info, gamma_estimates,gammaName, Final_loglikeli, likeli_name, all_headers, annot_names);
     }

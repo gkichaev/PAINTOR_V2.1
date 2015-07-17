@@ -56,7 +56,7 @@ VectorXd vector2eigen(vector<double> &vec);
 vector<vector<double> > eigen2Matrix(MatrixXd &mat);
 inline double Prob_Cijs(VectorXd& beta , VectorXd& aij);
 double Prob_C(MatrixXd& Aj,VectorXd& beta, VectorXd& C_vector);
-double EM_Run_chol(CausalProbs &probabilites, int iter_max, vector<vector<VectorXd>> &Zscores, vector<vector<VectorXd>> &Lambdas, VectorXd &beta_int, vector<MatrixXd> &Aijs, vector<vector<MatrixXd>> &upper_chol, int numCausal);
+
 double Estep_chol(vector<vector<VectorXd>> &Zscores, vector<vector<VectorXd>> &Lambdas, VectorXd &betas, vector<MatrixXd> &Aijs, vector<vector<MatrixXd>> &upper_chol, CausalProbs &E_out, int numberCausal);
 vector<vector<double> > Stack_Matrices(vector<MatrixXd> &mats);
 double CalcEuclidean(VectorXd &vec1 , VectorXd &vec2);
@@ -75,11 +75,12 @@ vector<double> GradientFxn(vector<double>& betas, ObjectiveData *in_data);
 double ObjectiveFxn(const vector<double> &x, vector<double> &grad, void *data);
 void Optimize_Nlopt(vector<double>& x, double lower, double upper, double betaZero,  void* in_data);
 VectorXd Zscores2Post(VectorXd& Zs);
-
+inline  double EvaluateLogMvn_NCP(VectorXd& Z_vec,  VectorXd C_vec,  VectorXd& Lam_vec,  MatrixXd& chol_factor,  MatrixXd& Sig);
 void NewPost_chol(VectorXd& Marginal, vector<VectorXd>& Zs, vector<VectorXd>& Lams, VectorXd& beta, MatrixXd& Aj,  vector<MatrixXd>& upper_chol, int NC, double& fullLikeli);
-
-
-double Estep_chol(vector<vector<VectorXd>> &Zscores, vector<vector<VectorXd>> &Lambdas, VectorXd &betas, vector<MatrixXd> &Aijs, vector<vector<MatrixXd>>& upper_chol, CausalProbs &E_out, int numberCausal);
+void NewPost_chol_ncp(VectorXd& Marginal, vector<VectorXd>& Zs, vector<VectorXd>& Lams, VectorXd& beta, MatrixXd& Aj,  vector<MatrixXd>& upper_chol, int NC, double& fullLikeli, vector<MatrixXd> sigma_loc);
+double Estep_chol(vector<vector<VectorXd>> &Zscores, vector<vector<VectorXd>> &Lambdas, VectorXd &betas, vector<MatrixXd> &Aijs, vector<vector<MatrixXd>>& upper_chol, CausalProbs &E_out, int numberCausal, vector<vector<MatrixXd>>& sigmas, string& version);
+double EM_Run_chol(CausalProbs &probabilites, int iter_max, vector<vector<VectorXd>> &Zscores, vector<vector<VectorXd>> &Lambdas, VectorXd &beta_int, vector<MatrixXd> &Aijs, vector<vector<MatrixXd>> &upper_chol, int numCausal , vector<vector<MatrixXd>>& sigmas, string & version);
+void CorrectNCP(VectorXd & Z_vec, VectorXd & C_vec, VectorXd& NCP,  MatrixXd& Sig);
 void NewPost(VectorXd& Marginal, VectorXd& Zs, VectorXd& Lams, VectorXd& beta, MatrixXd& Aj, MatrixXd& InvLD, MatrixXd& LD, int NC, double& fullLikeli);
 void Write_Posterior(string& out_dir, string & out_name, VectorXd& locus_results, vector<string>& locus_info, string& header );
 void Write_All_Output(string& input_files, string& out_dir, string& out_suffix, CausalProbs& results, vector<vector<string>> & all_locus_info, VectorXd & gamma_estimates, string& Gname, double log_likeli, string & Lname, vector<string>& all_headers, vector<string>& annot_names);
