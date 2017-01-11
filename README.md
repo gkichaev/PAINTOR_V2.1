@@ -1,8 +1,9 @@
 # PAINTOR
 Probabilistic Annotation INtegraTOR
 
-##UPDATE 07/16/2015
-Software (v2.1) has been updated with new strategy of setting Non-centrality Parameters (NCPs). See User Manual for details. 
+##UPDATE 01/07/2017
+
+We have relased [PAINTOR 3.0](https://github.com/gkichaev/PAINTOR_V3.0)! Please use the new  version for future experiments. We leave version 2.1 availabe for legacy purposes. 
 
 ## *UPDATE 06/08/2015*
 Announcing PAINTOR v2.0! We have expanded PAINTOR functionality to conduct fine-mapping with multi-ethnic cohorts. This latest release includes updates to the input formats and command line flags. Please see the new User Manual for complete details.
